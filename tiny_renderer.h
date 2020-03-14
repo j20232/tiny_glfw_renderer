@@ -42,7 +42,7 @@ private:
     const GLsizei m_vtx_cnt;
 };
 
-// ============================ Utility ================================
+// ============================ Initializer ================================
 
 inline void Initialize() {
     assert(glfwInit());
@@ -172,7 +172,7 @@ inline GLuint LoadProgram(const std::string vert_shader_file,
     return vstat && fstat ? CreateProgram(vsrc.data(), fsrc.data()) : 0;
 }
 
-// ============================ Geometry2D ==============================
+// ============================ Object2D ==============================
 
 Object2D::Object2D(GLint size, GLsizei vtx_cnt, const Vec2* vtx) {
     glGenVertexArrays(1, &m_vao);
