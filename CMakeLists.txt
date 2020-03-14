@@ -11,11 +11,11 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -s -DNDEBUG")
 if(APPLE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework Cocoa -framework OpenGL -framework IOKit")
 endif()
+include_directories(${CMAKE_SOURCE_DIR})
 
 # dependencies
 find_package(glfw3 3.3 REQUIRED)
-include_directories(${GLFW_INCLUDE_DIR})
-
+find_package(glew REQUIRED)
 
 add_executable(
     window.out
@@ -25,4 +25,5 @@ add_executable(
 target_link_libraries(
     window.out
     glfw
+    glew
 )
