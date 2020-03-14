@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+
 namespace tiny_renderer {
 
 inline void Initialize() {
@@ -27,34 +28,6 @@ inline GLFWwindow* CreateWindow(int width, int height, const char* title,
     if (glewInit() != GLEW_OK) return nullptr;
     glfwSwapInterval(1);
     return window;
-}
-
-inline GLuint CreateProgram(const char* vsrc, const char* fsrc) {
-    const GLuint program(glCreateProgram());
-    if (vsrc == nullptr || fsrc == nullptr) {
-        std::cout << "Incompatible shader source." << std::endl;
-        exit(1);
-    }
-
-    // Compile vertex shader
-    const GLuint vobj(glCreateShader(GL_VERTEX_SHADER));
-    glShaderSource(vobj, 1, &vsrc, NULL);
-    glCompileShader(vobj);
-    glAttachShader(program, vobj);
-    glDeleteShader(vobj);
-
-    // Compile fragment shader
-    const GLuint fobj(glCreateShader(GL_FRAGMENT_SHADER));
-    glShaderSource(fobj, 1, &fsrc, NULL);
-    glCompileShader(fobj);
-    glAttachShader(program, fobj);
-    glDeleteShader(fobj);
-
-    // Link shaders
-    glBindAttribLocation(program, 0, "position");
-    glBindFragDataLocation(program, 0, "fragment");
-    glLinkProgram(program);
-    return program;
 }
 
 inline GLboolean PrintShaderInfoLog(GLuint shader, const char* str) {
@@ -96,4 +69,35 @@ inline GLboolean PrintProgramInfoLog(GLuint program) {
     return static_cast<GLboolean>(status);
 }
 
+inline GLuint CreateProgram(const char* vsrc, const char* fsrc) {
+    const GLuint program(glCreateProgram());
+    if (vsrc == nullptr || fsrc == nullptr) {
+        std::cout << "Incompatible shader source." << std::endl;
+        exit(1);
+    }
+
+    // Compile vertex shader
+    const GLuint vobj(glCreateShader(GL_VERTEX_SHADER));
+    glShaderSource(vobj, 1, &vsrc, NULL);
+    glCompileShader(vobj);
+    if (PrintShaderInfoLog(vobj, "vertex shader"))
+        glAttachShader(program, vobj);
+    glDeleteShader(vobj);
+
+    // Compile fragment shader
+    const GLuint fobj(glCreateShader(GL_FRAGMENT_SHADER));
+    glShaderSource(fobj, 1, &fsrc, NULL);
+    glCompileShader(fobj);
+    if (PrintShaderInfoLog(fobj, "fragment shader"))
+        glAttachShader(program, fobj);
+    glDeleteShader(fobj);
+
+    // Link shaders
+    glBindAttribLocation(program, 0, "position");
+    glBindFragDataLocation(program, 0, "fragment");
+    glLinkProgram(program);
+    if (PrintProgramInfoLog(program)) return program;
+    glDeleteProgram(program);
+    return 0;
+}
 }  // namespace tiny_renderer
