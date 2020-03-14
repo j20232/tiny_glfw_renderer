@@ -4,7 +4,9 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 namespace tiny_renderer {
@@ -100,4 +102,41 @@ inline GLuint CreateProgram(const char* vsrc, const char* fsrc) {
     glDeleteProgram(program);
     return 0;
 }
+
+inline GLboolean ReadShaderSource(const std::string name,
+                                  std::vector<GLchar>& buffer) {
+    std::ifstream file(name, std::ios::binary);
+    if (file.fail()) {
+        std::cerr << "Error: Can't open " << name << std::endl;
+        return false;
+    }
+
+    // Allocate memory
+    file.seekg(0L, std::ios::end);
+    GLsizei length = static_cast<GLsizei>(file.tellg());
+    buffer.resize(length + 1);
+
+    // Open file
+    file.seekg(0L, std::ios::beg);
+    file.read(buffer.data(), length);
+    buffer[length] = '\0';
+
+    if (file.fail()) {
+        std::cerr << "Error: Could not read " << name << std::endl;
+        file.close();
+        return false;
+    }
+
+    file.close();
+    return true;
+}
+
+GLuint LoadProgram(const std::string vert_shader_file,
+                   const std::string frag_shader_file) {
+    std::vector<GLchar> vsrc, fsrc;
+    const bool vstat(ReadShaderSource(vert_shader_file, vsrc));
+    const bool fstat(ReadShaderSource(frag_shader_file, fsrc));
+    return vstat && fstat ? CreateProgram(vsrc.data(), fsrc.data()) : 0;
+}
+
 }  // namespace tiny_renderer
