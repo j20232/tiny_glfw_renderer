@@ -20,9 +20,11 @@ public:
     virtual ~Window();
     int ShouldClose() const;
     void SwapBuffers();
+    GLfloat GetAspect();
 
 private:
     GLFWwindow* const m_window;
+    GLfloat m_aspect;
     static void Resize(GLFWwindow* const window, int width, int height);
 };
 
@@ -191,6 +193,7 @@ Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
         exit(1);
     }
     glfwSwapInterval(1);
+    glfwSetWindowUserPointer(m_window, this);
     glfwSetWindowSizeCallback(m_window, Resize);
     Resize(m_window, width, height);
 }
@@ -206,7 +209,15 @@ void Window::SwapBuffers() {
 
 void Window::Resize(GLFWwindow* const window, int width, int height) {
     glViewport(0, 0, width, height);
+    Window* const instance(
+        static_cast<Window*>(glfwGetWindowUserPointer(window)));
+    if (instance != nullptr) {
+        instance->m_aspect =
+            static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
+    }
 }
+
+GLfloat Window::GetAspect() { return m_aspect; }
 
 // ============================ Object2D ==============================
 
