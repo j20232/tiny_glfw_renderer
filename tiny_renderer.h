@@ -12,6 +12,21 @@
 
 namespace tiny_renderer {
 
+// ============================== GUI ===================================
+class Window {
+public:
+    Window(int width, int height, const char* title,
+           GLFWmonitor* monitor = NULL, GLFWwindow* share = NULL);
+    virtual ~Window();
+    int ShouldClose() const;
+    void SwapBuffers();
+
+private:
+    GLFWwindow* const m_window;
+    static void Resize(GLFWwindow* const window, int width, int height);
+};
+
+// ============================ Geometry ================================
 struct Vec2 {
     GLfloat position[2];
 };
@@ -52,17 +67,6 @@ inline void Initialize() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
-
-inline GLFWwindow* CreateWindow(int width, int height, const char* title,
-                                GLFWmonitor* monitor = NULL,
-                                GLFWwindow* share = NULL) {
-    GLFWwindow* window(glfwCreateWindow(width, height, title, monitor, share));
-    glfwMakeContextCurrent(window);
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) return nullptr;
-    glfwSwapInterval(1);
-    return window;
 }
 
 inline GLboolean PrintShaderInfoLog(GLuint shader, const char* str) {
@@ -170,6 +174,38 @@ inline GLuint LoadProgram(const std::string vert_shader_file,
     const bool vstat(ReadShaderSource(vert_shader_file, vsrc));
     const bool fstat(ReadShaderSource(frag_shader_file, fsrc));
     return vstat && fstat ? CreateProgram(vsrc.data(), fsrc.data()) : 0;
+}
+
+// ============================== GUI ===================================
+Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
+               GLFWwindow* share)
+    : m_window(glfwCreateWindow(width, height, title, monitor, share)) {
+    if (m_window == NULL) {
+        std::cerr << "Can't create GLFW window." << std::endl;
+        exit(1);
+    }
+    glfwMakeContextCurrent(m_window);
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "Can't initialize GLEW." << std::endl;
+        exit(1);
+    }
+    glfwSwapInterval(1);
+    glfwSetWindowSizeCallback(m_window, Resize);
+    Resize(m_window, width, height);
+}
+
+Window::~Window() { glfwDestroyWindow(m_window); }
+
+int Window::ShouldClose() const { return glfwWindowShouldClose(m_window); }
+
+void Window::SwapBuffers() {
+    glfwSwapBuffers(m_window);
+    glfwWaitEvents();
+}
+
+void Window::Resize(GLFWwindow* const window, int width, int height) {
+    glViewport(0, 0, width, height);
 }
 
 // ============================ Object2D ==============================
