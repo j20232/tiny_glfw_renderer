@@ -131,8 +131,8 @@ inline GLboolean ReadShaderSource(const std::string name,
     return true;
 }
 
-GLuint LoadProgram(const std::string vert_shader_file,
-                   const std::string frag_shader_file) {
+inline GLuint LoadProgram(const std::string vert_shader_file,
+                          const std::string frag_shader_file) {
     std::vector<GLchar> vsrc, fsrc;
     const bool vstat(ReadShaderSource(vert_shader_file, vsrc));
     const bool fstat(ReadShaderSource(frag_shader_file, fsrc));
