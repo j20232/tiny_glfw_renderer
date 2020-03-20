@@ -81,3 +81,15 @@ target_link_libraries(
     glfw
     glew
 )
+
+# octahedron
+add_executable(
+    octahedron.out
+    example/octahedron.cpp
+)
+
+target_link_libraries(
+    octahedron.out
+    glfw
+    glew
+)

@@ -147,7 +147,18 @@ std::unique_ptr<const Geometry<2>> Rectangle(GLfloat x, GLfloat y, GLfloat w,
     std::unique_ptr<const Geometry<2>> shape(
         new Geometry<2>(2, 4, rectangle_vtx));
     return shape;
-};
+}
+
+std::unique_ptr<const Geometry<3>> Octahedron(GLfloat s = 1.0f) {
+    const Vec3 octahedron_vtx[] = {
+        {{0.0f, s, 0.0f}},  {{-s, 0.0f, 0.0f}}, {{0.0f, -s, 0.0f}},
+        {{s, 0.0f, 0.0f}},  {{0.0f, s, 0.0f}},  {{0.0f, 0.0f, s}},
+        {{0.0f, -s, 0.0f}}, {{0.0f, 0.0f, -s}}, {{-s, 0.0f, 0.0f}},
+        {{0.0f, 0.0f, s}},  {{s, 0.0f, 0.0f}},  {{0.0f, 0.0f, -s}}};
+    std::unique_ptr<const Geometry<3>> shape(
+        new Geometry<3>(3, 12, octahedron_vtx));
+    return shape;
+}
 
 // ============================ Initializer ================================
 
