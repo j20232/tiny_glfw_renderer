@@ -147,7 +147,7 @@ std::unique_ptr<const Geometry<2>> Rectangle(GLfloat x, GLfloat y, GLfloat w,
     std::unique_ptr<const Geometry<2>> shape(
         new Geometry<2>(2, 4, rectangle_vtx));
     return shape;
-};  // namespace tiny_glfw_renderer
+};
 
 // ============================ Initializer ================================
 
