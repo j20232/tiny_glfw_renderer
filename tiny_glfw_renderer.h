@@ -35,11 +35,8 @@ private:
     GLfloat m_height;
     GLfloat m_scale;
     GLfloat m_location[2];
-    int m_key_status;
     static void Resize(GLFWwindow* const window, int width, int height);
     static void Wheel(GLFWwindow* const window, double x, double y);
-    static void KeyBoard(GLFWwindow* const window, int key, int scancode,
-                         int action, int mods);
 };
 
 // ============================= Matrix =================================
@@ -416,8 +413,7 @@ Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
       m_width(width),
       m_height(height),
       m_scale(100.0f),
-      m_location{0.0f, 0.0f},
-      m_key_status(GLFW_RELEASE) {
+      m_location{0.0f, 0.0f} {
     if (m_window == NULL) {
         std::cerr << "Can't create GLFW window." << std::endl;
         exit(1);
@@ -432,7 +428,6 @@ Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
     glfwSetWindowUserPointer(m_window, this);
     glfwSetWindowSizeCallback(m_window, Resize);
     glfwSetScrollCallback(m_window, Wheel);
-    glfwSetKeyCallback(m_window, KeyBoard);
     Resize(m_window, m_width, m_height);
     m_location[0] = m_location[1] = 0.0f;
 }
@@ -446,11 +441,7 @@ int Window::ShouldClose() const {
 
 void Window::SwapBuffers() {
     glfwSwapBuffers(m_window);
-    if (m_key_status == GLFW_RELEASE) {
-        glfwWaitEvents();
-    } else {
-        glfwPollEvents();
-    }
+    glfwPollEvents();
 
     // Left or Right
     if (glfwGetKey(m_window, GLFW_KEY_LEFT) != GLFW_RELEASE) {
@@ -490,15 +481,6 @@ void Window::Wheel(GLFWwindow* const window, double x, double y) {
         static_cast<Window*>(glfwGetWindowUserPointer(window)));
     if (instance != NULL) {
         instance->m_scale += static_cast<GLfloat>(y);
-    }
-}
-
-void Window::KeyBoard(GLFWwindow* const window, int key, int scancode,
-                      int action, int mods) {
-    Window* const instance(
-        static_cast<Window*>(glfwGetWindowUserPointer(window)));
-    if (instance != NULL) {
-        instance->m_key_status = action;
     }
 }
 

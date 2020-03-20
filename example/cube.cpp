@@ -21,6 +21,7 @@ int main() {
     auto shape = SolidCube(1.0f);
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+    glfwSetTime(0.0);
     while (window.ShouldClose() == GL_FALSE) {
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -28,8 +29,9 @@ int main() {
 
         // translation
         const GLfloat *const position(window.GetLocation());
+        const Matrix r(Matrix::Rotate(glfwGetTime(), 0.0f, 1.0f, 0.0f));
         const Matrix translation(
-            Matrix::Translate(position[0], position[1], 0.0f));
+            Matrix::Translate(position[0], position[1], 0.0f) * r);
 
         // model matrix
         const Matrix model(translation);
