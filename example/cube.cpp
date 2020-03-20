@@ -18,7 +18,7 @@ int main() {
     const GLint view_location(glGetUniformLocation(program, "view"));
     const GLint proj_location(glGetUniformLocation(program, "projection"));
 
-    auto shape = Octahedron(1.0f);
+    auto shape = Cube(1.0f);
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     while (window.ShouldClose() == GL_FALSE) {

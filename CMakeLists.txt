@@ -94,14 +94,14 @@ target_link_libraries(
     glew
 )
 
-# box
+# cube
 add_executable(
-    box.out
-    example/box.cpp
+    cube.out
+    example/cube.cpp
 )
 
 target_link_libraries(
-    box.out
+    cube.out
     glfw
     glew
 )

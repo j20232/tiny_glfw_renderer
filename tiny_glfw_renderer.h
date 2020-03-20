@@ -136,7 +136,7 @@ public:
     Geometry(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx,
              GLsizei idx_cnt = 0, const GLuint* idx = nullptr)
         : m_obj(new Object<N>(size, vtx_cnt, vtx, idx_cnt, idx)),
-          m_vtx_cnt(vtx_cnt){};
+          m_vtx_cnt(vtx_cnt) {}
 
     void draw() const {
         m_obj->bind();
@@ -147,33 +147,79 @@ public:
 
 private:
     std::shared_ptr<const Object<N>> m_obj;
-
-protected:
     const GLsizei m_vtx_cnt;
 };
 
 using Geometry2D = Geometry<2>;
 using Geometry3D = Geometry<3>;
 
+template <int N>
+class GeometryIndex : public Geometry<N> {
+public:
+    GeometryIndex(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx,
+                  GLsizei idx_cnt = 0, const GLuint* idx = nullptr)
+        : Geometry<N>(size, vtx_cnt, vtx, idx_cnt, idx), m_idx_cnt(idx_cnt) {}
+
+    virtual void execute() const {
+        glDrawElements(GL_LINES, m_idx_cnt, GL_UNSIGNED_INT, 0);
+    }
+
+protected:
+    const GLsizei m_idx_cnt;
+};
+
+using GeometryIndex2D = GeometryIndex<2>;
+using GeometryIndex3D = GeometryIndex<3>;
+
 // ============================= Primitive =================================
 
-std::unique_ptr<const Geometry<2>> Rectangle(GLfloat x, GLfloat y, GLfloat w,
-                                             GLfloat h) {
+std::unique_ptr<const Geometry2D> Rectangle(GLfloat x, GLfloat y, GLfloat w,
+                                            GLfloat h) {
     const Vec2 rectangle_vtx[] = {
         {{x, y}}, {{x + w, y}}, {{x + w, y + h}}, {{x, y + h}}};
-    std::unique_ptr<const Geometry<2>> shape(
-        new Geometry<2>(2, 4, rectangle_vtx));
+    std::unique_ptr<const Geometry2D> shape(
+        new Geometry2D(2, 4, rectangle_vtx));
     return shape;
 }
 
-std::unique_ptr<const Geometry<3>> Octahedron(GLfloat s = 1.0f) {
+std::unique_ptr<const Geometry3D> Octahedron(GLfloat s = 1.0f) {
     const Vec3 octahedron_vtx[] = {
         {{0.0f, s, 0.0f}},  {{-s, 0.0f, 0.0f}}, {{0.0f, -s, 0.0f}},
         {{s, 0.0f, 0.0f}},  {{0.0f, s, 0.0f}},  {{0.0f, 0.0f, s}},
         {{0.0f, -s, 0.0f}}, {{0.0f, 0.0f, -s}}, {{-s, 0.0f, 0.0f}},
         {{0.0f, 0.0f, s}},  {{s, 0.0f, 0.0f}},  {{0.0f, 0.0f, -s}}};
-    std::unique_ptr<const Geometry<3>> shape(
-        new Geometry<3>(3, 12, octahedron_vtx));
+    std::unique_ptr<const Geometry3D> shape(
+        new Geometry3D(3, 12, octahedron_vtx));
+    return shape;
+}
+
+std::unique_ptr<const GeometryIndex3D> Cube(GLfloat s = 1.0f) {
+    const Vec3 cube_vtx[] = {
+        {{-s, -s, -s}},  // 0
+        {{-s, -s, s}},   // 1
+        {{-s, s, s}},    // 2
+        {{-s, s, -s}},   // 3
+        {{s, s, -s}},    // 4
+        {{s, -s, -s}},   // 5
+        {{s, -s, s}},    // 6
+        {{s, s, s}}      // 7
+    };
+    const GLuint cube_idx[] = {
+        1, 0,  //
+        2, 7,  //
+        3, 0,  //
+        4, 7,  //
+        5, 0,  //
+        6, 7,  //
+        1, 2,  //
+        2, 3,  //
+        3, 4,  //
+        4, 5,  //
+        5, 6,  //
+        6, 1   //
+    };
+    std::unique_ptr<const GeometryIndex3D> shape(
+        new GeometryIndex3D(3, 8, cube_vtx, 24, cube_idx));
     return shape;
 }
 
