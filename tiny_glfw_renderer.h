@@ -88,10 +88,13 @@ using Vec3 = Vec<3>;
 template <int N>
 class Object {
 public:
-    Object(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx) {
+    Object(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx, GLsizei idx_cnt = 0,
+           const GLuint* idx = nullptr) {
+        // vertex array object
         glGenVertexArrays(1, &m_vao);
         glBindVertexArray(m_vao);
 
+        // vertex buffer object
         glGenBuffers(1, &m_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glBufferData(GL_ARRAY_BUFFER, vtx_cnt * sizeof(Vec<N>), vtx,
@@ -99,11 +102,20 @@ public:
 
         glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(0);
+
+        // index buffer object
+        glGenBuffers(1, &m_ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_cnt * sizeof(GLuint), idx,
+                     GL_STATIC_DRAW);
     }
+
     virtual ~Object() {
         glDeleteBuffers(1, &m_vao);
         glDeleteBuffers(1, &m_vbo);
+        glDeleteBuffers(1, &m_ibo);
     }
+
     void bind() const { glBindVertexArray(m_vao); }
 
 private:
@@ -112,6 +124,7 @@ private:
 
     GLuint m_vao;
     GLuint m_vbo;
+    GLuint m_ibo;
 };
 
 using Object2D = Object<2>;
@@ -120,8 +133,10 @@ using Object3D = Object<3>;
 template <int N>
 class Geometry {
 public:
-    Geometry(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx)
-        : m_obj(new Object<N>(size, vtx_cnt, vtx)), m_vtx_cnt(vtx_cnt){};
+    Geometry(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx,
+             GLsizei idx_cnt = 0, const GLuint* idx = nullptr)
+        : m_obj(new Object<N>(size, vtx_cnt, vtx, idx_cnt, idx)),
+          m_vtx_cnt(vtx_cnt){};
 
     void draw() const {
         m_obj->bind();
@@ -132,6 +147,8 @@ public:
 
 private:
     std::shared_ptr<const Object<N>> m_obj;
+
+protected:
     const GLsizei m_vtx_cnt;
 };
 

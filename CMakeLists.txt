@@ -22,62 +22,62 @@ find_package(glfw3 3.3 REQUIRED)
 find_package(glew REQUIRED)
 
 
-# box keeping aspect ratio
+# rect keeping aspect ratio
 add_executable(
-    box_keeping_aspect.out
-    example/box_keeping_aspect.cpp
+    rect_keeping_aspect.out
+    example/rect_keeping_aspect.cpp
 )
 
 target_link_libraries(
-    box_keeping_aspect.out
+    rect_keeping_aspect.out
     glfw
     glew
 )
 
-# box keeping aspect scale
+# rect keeping aspect scale
 add_executable(
-    box_keeping_scale.out
-    example/box_keeping_scale.cpp
+    rect_keeping_scale.out
+    example/rect_keeping_scale.cpp
 )
 
 target_link_libraries(
-    box_keeping_scale.out
+    rect_keeping_scale.out
     glfw
     glew
 )
 
-# box orthognal
+# rect orthognal
 add_executable(
-    box_orthogonal.out
-    example/box_orthogonal.cpp
+    rect_orthogonal.out
+    example/rect_orthogonal.cpp
 )
 
 target_link_libraries(
-    box_orthogonal.out
+    rect_orthogonal.out
     glfw
     glew
 )
 
-# box frustum
+# rect frustum
 add_executable(
-    box_frustum.out
-    example/box_frustum.cpp
+    rect_frustum.out
+    example/rect_frustum.cpp
 )
 
 target_link_libraries(
-    box_frustum.out
+    rect_frustum.out
     glfw
     glew
 )
 
-# box perspective
+# rect perspective
 add_executable(
-    box_perspective.out
-    example/box_perspective.cpp
+    rect_perspective.out
+    example/rect_perspective.cpp
 )
 
 target_link_libraries(
-    box_perspective.out
+    rect_perspective.out
     glfw
     glew
 )
@@ -90,6 +90,18 @@ add_executable(
 
 target_link_libraries(
     octahedron.out
+    glfw
+    glew
+)
+
+# box
+add_executable(
+    box.out
+    example/box.cpp
+)
+
+target_link_libraries(
+    box.out
     glfw
     glew
 )
