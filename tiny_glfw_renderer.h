@@ -58,6 +58,8 @@ public:
                          GLfloat gx, GLfloat gy, GLfloat gz,  // target position
                          GLfloat ux, GLfloat uy, GLfloat uz   // upper vector
     );
+    static Matrix Orthogonal(GLfloat left, GLfloat right, GLfloat bottom,
+                             GLfloat top, GLfloat z_near, GLfloat z_far);
 
 private:
     GLfloat m_matrix[16];
@@ -423,6 +425,24 @@ Matrix Matrix::LookAt(GLfloat ex, GLfloat ey, GLfloat ez,  // eye position
     rv.m_matrix[10] = tz / t;
 
     return rv * tv;
+}
+Matrix Matrix::Orthogonal(GLfloat left, GLfloat right, GLfloat bottom,
+                          GLfloat top, GLfloat z_near, GLfloat z_far) {
+    Matrix t(Identity());
+    const GLfloat dx(right - left);
+    const GLfloat dy(top - bottom);
+    const GLfloat dz(z_far - z_near);
+
+    if (dx != 0.0f && dy != 0.0f && dz != 0.0f) {
+        t.m_matrix[0] = 2.0f / dx;
+        t.m_matrix[5] = 2.0f / dy;
+        t.m_matrix[10] = -2.0f / dz;
+        t.m_matrix[12] = -(right + left) / dx;
+        t.m_matrix[13] = -(top + bottom) / dy;
+        t.m_matrix[14] = -(z_far + z_near) / dz;
+    }
+
+    return t;
 }
 
 // ============================ Object2D ==============================
