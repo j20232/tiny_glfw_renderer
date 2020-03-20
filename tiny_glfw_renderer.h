@@ -76,35 +76,78 @@ private:
 };
 
 // ============================ Geometry ================================
-struct Vec2 {
-    GLfloat position[2];
+
+template <int N>
+struct Vec {
+    GLfloat position[N];
 };
 
-class Object2D {
+using Vec2 = Vec<2>;
+using Vec3 = Vec<3>;
+
+template <int N>
+class Object {
 public:
-    Object2D(GLint size, GLsizei vtx_cnt, const Vec2* vtx);
-    virtual ~Object2D();
-    void bind() const;
+    Object(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx) {
+        glGenVertexArrays(1, &m_vao);
+        glBindVertexArray(m_vao);
+
+        glGenBuffers(1, &m_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glBufferData(GL_ARRAY_BUFFER, vtx_cnt * sizeof(Vec<N>), vtx,
+                     GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(0);
+    }
+    virtual ~Object() {
+        glDeleteBuffers(1, &m_vao);
+        glDeleteBuffers(1, &m_vbo);
+    }
+    void bind() const { glBindVertexArray(m_vao); }
 
 private:
-    Object2D(const Object2D& o);
-    Object2D& operator=(const Object2D& o);
+    Object(const Object& o);
+    Object& operator=(const Object& o);
 
     GLuint m_vao;
     GLuint m_vbo;
 };
 
-class Geometry2D {
+using Object2D = Object<2>;
+using Object3D = Object<3>;
+
+template <int N>
+class Geometry {
 public:
-    Geometry2D(GLint size, GLsizei vtx_cnt, const Vec2* vtx)
-        : m_obj(new Object2D(size, vtx_cnt, vtx)), m_vtx_cnt(vtx_cnt){};
-    void draw() const;
-    virtual void execute() const;
+    Geometry(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx)
+        : m_obj(new Object<N>(size, vtx_cnt, vtx)), m_vtx_cnt(vtx_cnt){};
+
+    void draw() const {
+        m_obj->bind();
+        execute();
+    }
+
+    virtual void execute() const { glDrawArrays(GL_LINE_LOOP, 0, m_vtx_cnt); }
 
 private:
-    std::shared_ptr<const Object2D> m_obj;
+    std::shared_ptr<const Object<N>> m_obj;
     const GLsizei m_vtx_cnt;
 };
+
+using Geometry2D = Geometry<2>;
+using Geometry3D = Geometry<3>;
+
+// ============================= Primitive =================================
+
+std::unique_ptr<const Geometry<2>> Rectangle(GLfloat x, GLfloat y, GLfloat w,
+                                             GLfloat h) {
+    const Vec2 rectangle_vtx[] = {
+        {{x, y}}, {{x + w, y}}, {{x + w, y + h}}, {{x, y + h}}};
+    std::unique_ptr<const Geometry<2>> shape(
+        new Geometry<2>(2, 4, rectangle_vtx));
+    return shape;
+};  // namespace tiny_glfw_renderer
 
 // ============================ Initializer ================================
 
@@ -488,35 +531,5 @@ Matrix Matrix::Perspective(GLfloat fovy, GLfloat aspect, GLfloat z_near,
 
     return t;
 }
-
-// ============================ Object2D ==============================
-
-Object2D::Object2D(GLint size, GLsizei vtx_cnt, const Vec2* vtx) {
-    glGenVertexArrays(1, &m_vao);
-    glBindVertexArray(m_vao);
-
-    glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, vtx_cnt * sizeof(Vec2), vtx, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-}
-
-Object2D::~Object2D() {
-    glDeleteBuffers(1, &m_vao);
-    glDeleteBuffers(1, &m_vbo);
-}
-
-void Object2D::bind() const { glBindVertexArray(m_vao); }
-
-// ============================ Geometry2D ==============================
-
-void Geometry2D::draw() const {
-    m_obj->bind();
-    execute();
-}
-
-void Geometry2D::execute() const { glDrawArrays(GL_LINE_LOOP, 0, m_vtx_cnt); }
 
 }  // namespace tiny_glfw_renderer
