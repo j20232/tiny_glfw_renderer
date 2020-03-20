@@ -46,15 +46,26 @@ target_link_libraries(
     glew
 )
 
-
-# box mvp
+# box orthognal
 add_executable(
-    box_mvp.out
-    example/box_mvp.cpp
+    box_orthogonal.out
+    example/box_orthogonal.cpp
 )
 
 target_link_libraries(
-    box_mvp.out
+    box_orthogonal.out
+    glfw
+    glew
+)
+
+# box frustum
+add_executable(
+    box_frustum.out
+    example/box_frustum.cpp
+)
+
+target_link_libraries(
+    box_frustum.out
     glfw
     glew
 )

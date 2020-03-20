@@ -60,6 +60,8 @@ public:
     );
     static Matrix Orthogonal(GLfloat left, GLfloat right, GLfloat bottom,
                              GLfloat top, GLfloat z_near, GLfloat z_far);
+    static Matrix Frustum(GLfloat left, GLfloat right, GLfloat bottom,
+                          GLfloat top, GLfloat z_near, GLfloat z_far);
 
 private:
     GLfloat m_matrix[16];
@@ -426,6 +428,7 @@ Matrix Matrix::LookAt(GLfloat ex, GLfloat ey, GLfloat ez,  // eye position
 
     return rv * tv;
 }
+
 Matrix Matrix::Orthogonal(GLfloat left, GLfloat right, GLfloat bottom,
                           GLfloat top, GLfloat z_near, GLfloat z_far) {
     Matrix t(Identity());
@@ -440,6 +443,27 @@ Matrix Matrix::Orthogonal(GLfloat left, GLfloat right, GLfloat bottom,
         t.m_matrix[12] = -(right + left) / dx;
         t.m_matrix[13] = -(top + bottom) / dy;
         t.m_matrix[14] = -(z_far + z_near) / dz;
+    }
+
+    return t;
+}
+
+Matrix Matrix::Frustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,
+                       GLfloat z_near, GLfloat z_far) {
+    Matrix t(Identity());
+    const GLfloat dx(right - left);
+    const GLfloat dy(top - bottom);
+    const GLfloat dz(z_far - z_near);
+
+    if (dx != 0.0f && dy != 0.0f && dz != 0.0f) {
+        t.m_matrix[0] = 2.0f + z_near / dx;
+        t.m_matrix[5] = 2.0f + z_near / dy;
+        t.m_matrix[8] = (right + left) / dx;
+        t.m_matrix[9] = (top + bottom) / dy;
+        t.m_matrix[10] = -(z_far + z_near) / dz;
+        t.m_matrix[11] = -1.0f;
+        t.m_matrix[14] = -2.0f * z_far * z_near / dz;
+        t.m_matrix[15] = 0.0f;
     }
 
     return t;

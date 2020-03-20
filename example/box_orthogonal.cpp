@@ -28,10 +28,11 @@ int main() {
 
         glUseProgram(program);
 
-        // Scaling
         const GLfloat width = window.GetWidth();
         const GLfloat height = window.GetHeight();
         const GLfloat scale = window.GetScale() * 2.0f;
+
+        // Scaling
         const Matrix scaling(
             Matrix::Scale(scale / width, scale / height, 1.0f));
 
