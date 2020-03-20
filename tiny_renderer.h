@@ -34,6 +34,7 @@ private:
     GLfloat m_scale;
     GLfloat m_location[2];
     static void Resize(GLFWwindow* const window, int width, int height);
+    static void Wheel(GLFWwindow* const window, double x, double y);
 };
 
 // ============================ Geometry ================================
@@ -206,6 +207,7 @@ Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
     glfwSwapInterval(1);
     glfwSetWindowUserPointer(m_window, this);
     glfwSetWindowSizeCallback(m_window, Resize);
+    glfwSetScrollCallback(m_window, Wheel);
     Resize(m_window, m_width, m_height);
     m_location[0] = m_location[1] = 0.0f;
 }
@@ -217,10 +219,13 @@ int Window::ShouldClose() const { return glfwWindowShouldClose(m_window); }
 void Window::SwapBuffers() {
     glfwSwapBuffers(m_window);
     glfwWaitEvents();
-    double x, y;
-    glfwGetCursorPos(m_window, &x, &y);
-    m_location[0] = static_cast<GLfloat>(x) * 2.0f / m_width - 1.0f;
-    m_location[1] = 1.0f - static_cast<GLfloat>(y) * 2.0f / m_height;
+
+    if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_1) != GLFW_RELEASE) {
+        double x, y;
+        glfwGetCursorPos(m_window, &x, &y);
+        m_location[0] = static_cast<GLfloat>(x) * 2.0f / m_width - 1.0f;
+        m_location[1] = 1.0f - static_cast<GLfloat>(y) * 2.0f / m_height;
+    }
 }
 
 void Window::Resize(GLFWwindow* const window, int width, int height) {
@@ -230,6 +235,14 @@ void Window::Resize(GLFWwindow* const window, int width, int height) {
     if (instance != nullptr) {
         instance->m_width = width;
         instance->m_height = height;
+    }
+}
+
+void Window::Wheel(GLFWwindow* const window, double x, double y) {
+    Window* const instance(
+        static_cast<Window*>(glfwGetWindowUserPointer(window)));
+    if (instance != NULL) {
+        instance->m_scale += static_cast<GLfloat>(y);
     }
 }
 
