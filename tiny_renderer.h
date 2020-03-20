@@ -33,8 +33,11 @@ private:
     GLfloat m_height;
     GLfloat m_scale;
     GLfloat m_location[2];
+    int m_key_status;
     static void Resize(GLFWwindow* const window, int width, int height);
     static void Wheel(GLFWwindow* const window, double x, double y);
+    static void KeyBoard(GLFWwindow* const window, int key, int scancode,
+                         int action, int mods);
 };
 
 // ============================ Geometry ================================
@@ -191,9 +194,11 @@ inline GLuint LoadProgram(const std::string vert_shader_file,
 Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
                GLFWwindow* share)
     : m_window(glfwCreateWindow(width, height, title, monitor, share)),
-      m_scale(100.0f) {
-    m_width = width;
-    m_height = height;
+      m_width(width),
+      m_height(height),
+      m_scale(100.0f),
+      m_location{0.0f, 0.0f},
+      m_key_status(GLFW_RELEASE) {
     if (m_window == NULL) {
         std::cerr << "Can't create GLFW window." << std::endl;
         exit(1);
@@ -208,18 +213,41 @@ Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
     glfwSetWindowUserPointer(m_window, this);
     glfwSetWindowSizeCallback(m_window, Resize);
     glfwSetScrollCallback(m_window, Wheel);
+    glfwSetKeyCallback(m_window, KeyBoard);
     Resize(m_window, m_width, m_height);
     m_location[0] = m_location[1] = 0.0f;
 }
 
 Window::~Window() { glfwDestroyWindow(m_window); }
 
-int Window::ShouldClose() const { return glfwWindowShouldClose(m_window); }
+int Window::ShouldClose() const {
+    return glfwWindowShouldClose(m_window) ||
+           glfwGetKey(m_window, GLFW_KEY_ESCAPE);
+}
 
 void Window::SwapBuffers() {
     glfwSwapBuffers(m_window);
-    glfwWaitEvents();
+    if (m_key_status == GLFW_RELEASE) {
+        glfwWaitEvents();
+    } else {
+        glfwPollEvents();
+    }
 
+    // Left or Right
+    if (glfwGetKey(m_window, GLFW_KEY_LEFT) != GLFW_RELEASE) {
+        m_location[0] -= 2.0f / m_width;
+    } else if (glfwGetKey(m_window, GLFW_KEY_RIGHT) != GLFW_RELEASE) {
+        m_location[0] += 2.0f / m_width;
+    }
+
+    // Down or Up
+    if (glfwGetKey(m_window, GLFW_KEY_DOWN) != GLFW_RELEASE) {
+        m_location[1] -= 2.0f / m_height;
+    } else if (glfwGetKey(m_window, GLFW_KEY_UP) != GLFW_RELEASE) {
+        m_location[1] += 2.0f / m_height;
+    }
+
+    // Mouse
     if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_1) != GLFW_RELEASE) {
         double x, y;
         glfwGetCursorPos(m_window, &x, &y);
@@ -243,6 +271,15 @@ void Window::Wheel(GLFWwindow* const window, double x, double y) {
         static_cast<Window*>(glfwGetWindowUserPointer(window)));
     if (instance != NULL) {
         instance->m_scale += static_cast<GLfloat>(y);
+    }
+}
+
+void Window::KeyBoard(GLFWwindow* const window, int key, int scancode,
+                      int action, int mods) {
+    Window* const instance(
+        static_cast<Window*>(glfwGetWindowUserPointer(window)));
+    if (instance != NULL) {
+        instance->m_key_status = action;
     }
 }
 
