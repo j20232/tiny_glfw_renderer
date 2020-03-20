@@ -25,12 +25,14 @@ public:
     GLfloat GetHeight() const;
     GLfloat GetAspect() const;
     GLfloat GetScale() const;
+    const GLfloat* GetLocation() const;
 
 private:
     GLFWwindow* const m_window;
     GLfloat m_width;
     GLfloat m_height;
     GLfloat m_scale;
+    GLfloat m_location[2];
     static void Resize(GLFWwindow* const window, int width, int height);
 };
 
@@ -205,6 +207,7 @@ Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
     glfwSetWindowUserPointer(m_window, this);
     glfwSetWindowSizeCallback(m_window, Resize);
     Resize(m_window, m_width, m_height);
+    m_location[0] = m_location[1] = 0.0f;
 }
 
 Window::~Window() { glfwDestroyWindow(m_window); }
@@ -214,6 +217,10 @@ int Window::ShouldClose() const { return glfwWindowShouldClose(m_window); }
 void Window::SwapBuffers() {
     glfwSwapBuffers(m_window);
     glfwWaitEvents();
+    double x, y;
+    glfwGetCursorPos(m_window, &x, &y);
+    m_location[0] = static_cast<GLfloat>(x) * 2.0f / m_width - 1.0f;
+    m_location[1] = 1.0f - static_cast<GLfloat>(y) * 2.0f / m_height;
 }
 
 void Window::Resize(GLFWwindow* const window, int width, int height) {
@@ -230,6 +237,7 @@ GLfloat Window::GetWidth() const { return m_width; }
 GLfloat Window::GetHeight() const { return m_height; }
 GLfloat Window::GetAspect() const { return m_width / m_height; }
 GLfloat Window::GetScale() const { return m_scale; }
+const GLfloat* Window::GetLocation() const { return m_location; }
 
 // ============================ Object2D ==============================
 

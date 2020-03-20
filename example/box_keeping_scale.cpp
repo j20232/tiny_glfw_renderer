@@ -16,9 +16,10 @@ int main() {
     Window window(640, 480, "Test");
 
     const GLuint program(LoadProgram(SCALE_VERT, FRAG));
-    const GLint aspect_width(glGetUniformLocation(program, "width"));
-    const GLint aspect_height(glGetUniformLocation(program, "height"));
-    const GLint aspect_scale(glGetUniformLocation(program, "scale"));
+    const GLint width_loc(glGetUniformLocation(program, "width"));
+    const GLint height_loc(glGetUniformLocation(program, "height"));
+    const GLint scale_loc(glGetUniformLocation(program, "scale"));
+    const GLint location_loc(glGetUniformLocation(program, "location"));
 
     std::unique_ptr<const Geometry2D> shape(
         new Geometry2D(2, 4, rectangle_vtx));
@@ -27,9 +28,10 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(program);
-        glUniform1f(aspect_width, window.GetWidth());
-        glUniform1f(aspect_height, window.GetHeight());
-        glUniform1f(aspect_scale, window.GetScale());
+        glUniform1f(width_loc, window.GetWidth());
+        glUniform1f(height_loc, window.GetHeight());
+        glUniform1f(scale_loc, window.GetScale());
+        glUniform2fv(location_loc, 1, window.GetLocation());
 
         shape->draw();
         window.SwapBuffers();
