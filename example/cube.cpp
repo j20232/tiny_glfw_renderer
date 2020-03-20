@@ -21,12 +21,20 @@ int main() {
     auto shape = SolidCube(1.0f);
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+
+    // Back Culling
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+
+    // Depth Buffer
+    glClearDepth(1.0);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+
     glfwSetTime(0.0);
     while (window.ShouldClose() == GL_FALSE) {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glFrontFace(GL_CCW);
-        glCullFace(GL_BACK);
-        glEnable(GL_CULL_FACE);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(program);
 
@@ -52,6 +60,11 @@ int main() {
         glUniformMatrix4fv(proj_location, 1, GL_FALSE, projection.Data());
 
         shape->draw(GL_TRIANGLES);
+
+        const Matrix model2(translation * Matrix::Translate(0.0f, 0.0f, 3.0f));
+        glUniformMatrix4fv(model_location, 1, GL_FALSE, model2.Data());
+        shape->draw(GL_TRIANGLES);
+
         window.SwapBuffers();
     }
 }
