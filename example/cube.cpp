@@ -24,6 +24,9 @@ int main() {
     glfwSetTime(0.0);
     while (window.ShouldClose() == GL_FALSE) {
         glClear(GL_COLOR_BUFFER_BIT);
+        glFrontFace(GL_CCW);
+        glCullFace(GL_BACK);
+        glEnable(GL_CULL_FACE);
 
         glUseProgram(program);
 
