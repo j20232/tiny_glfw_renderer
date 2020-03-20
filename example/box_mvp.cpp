@@ -17,6 +17,7 @@ int main() {
 
     const GLuint program(LoadProgram(MVP_VERT, FRAG));
     const GLint model_location(glGetUniformLocation(program, "model"));
+    const GLint view_location(glGetUniformLocation(program, "view"));
 
     std::unique_ptr<const Geometry2D> shape(
         new Geometry2D(2, 4, rectangle_vtx));
@@ -40,8 +41,12 @@ int main() {
 
         // model matrix
         const Matrix model(translation * scaling);
-
         glUniformMatrix4fv(model_location, 1, GL_FALSE, model.Data());
+
+        // view matrix
+        const Matrix view(Matrix::LookAt(0.0f, 0.0f, 0.0f, -1.0f, -1.0f, -1.0f,
+                                         0.0f, 1.0f, 0.0f));
+        glUniformMatrix4fv(view_location, 1, GL_FALSE, view.Data());
 
         shape->draw();
         window.SwapBuffers();

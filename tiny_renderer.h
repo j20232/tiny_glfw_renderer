@@ -54,6 +54,10 @@ public:
     static Matrix Translate(GLfloat x, GLfloat y, GLfloat z);
     static Matrix Scale(GLfloat x, GLfloat y, GLfloat z);
     static Matrix Rotate(GLfloat theta, GLfloat x, GLfloat y, GLfloat z);
+    static Matrix LookAt(GLfloat ex, GLfloat ey, GLfloat ez,  // eye position
+                         GLfloat gx, GLfloat gy, GLfloat gz,  // target position
+                         GLfloat ux, GLfloat uy, GLfloat uz   // upper vector
+    );
 
 private:
     GLfloat m_matrix[16];
@@ -375,6 +379,50 @@ Matrix Matrix::Rotate(GLfloat theta, GLfloat x, GLfloat y, GLfloat z) {
     t.m_matrix[10] = n * n * (1 - std::cos(theta)) + std::cos(theta);
 
     return t;
+}
+Matrix Matrix::LookAt(GLfloat ex, GLfloat ey, GLfloat ez,  // eye position
+                      GLfloat gx, GLfloat gy, GLfloat gz,  // target position
+                      GLfloat ux, GLfloat uy, GLfloat uz   // upper vector
+) {
+    // translation
+    const Matrix tv(Translate(-ex, -ey, -ez));
+
+    // t = e - g
+    const GLfloat tx(ex - gx);
+    const GLfloat ty(ey - gy);
+    const GLfloat tz(ez - gz);
+
+    // r = u x t
+    const GLfloat rx(uy * tz - uz * ty);
+    const GLfloat ry(uz * tx - ux * tz);
+    const GLfloat rz(ux * ty - uy * tx);
+
+    // s = t x r
+    const GLfloat sx(ty * rz - tz * ry);
+    const GLfloat sy(tz * rx - tx * rz);
+    const GLfloat sz(tx * ry - ty * rx);
+
+    const GLfloat s2(sx * sx + sy * sy + sz * sz);
+    if (s2 == 0.0f) return tv;
+
+    Matrix rv(Identity());  // rotation
+
+    const GLfloat r(std::sqrt(rx * rx + ry * ry + rz * rz));
+    rv.m_matrix[0] = rx / r;
+    rv.m_matrix[4] = ry / r;
+    rv.m_matrix[8] = rz / r;
+
+    const GLfloat s(std::sqrt(s2));
+    rv.m_matrix[1] = sx / s;
+    rv.m_matrix[5] = sy / s;
+    rv.m_matrix[9] = sz / s;
+
+    const GLfloat t(std::sqrt(tx * tx + ty * ty + tz * tz));
+    rv.m_matrix[2] = tx / t;
+    rv.m_matrix[6] = ty / t;
+    rv.m_matrix[10] = tz / t;
+
+    return rv * tv;
 }
 
 // ============================ Object2D ==============================
