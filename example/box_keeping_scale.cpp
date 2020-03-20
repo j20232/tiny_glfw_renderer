@@ -1,9 +1,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "tiny_renderer.h"
+#include "tiny_glfw_renderer.h"
 
-using namespace tiny_renderer;
+using namespace tiny_glfw_renderer;
 
 const std::string SHADER_DIR = "../example/shaders/";
 const std::string SCALE_VERT = SHADER_DIR + "keep_scale.vert";
