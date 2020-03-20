@@ -18,7 +18,7 @@ int main() {
     const GLint view_location(glGetUniformLocation(program, "view"));
     const GLint proj_location(glGetUniformLocation(program, "projection"));
 
-    auto shape = Cube(1.0f);
+    auto shape = SolidCube(1.0f);
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     while (window.ShouldClose() == GL_FALSE) {
@@ -46,7 +46,7 @@ int main() {
         const Matrix projection(Matrix::Perspective(fovy, aspect, 1.0f, 10.0f));
         glUniformMatrix4fv(proj_location, 1, GL_FALSE, projection.Data());
 
-        shape->draw();
+        shape->draw(GL_TRIANGLES);
         window.SwapBuffers();
     }
 }

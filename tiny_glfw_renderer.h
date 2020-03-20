@@ -142,12 +142,14 @@ public:
         : m_obj(new Object<N>(size, vtx_cnt, vtx, idx_cnt, idx)),
           m_vtx_cnt(vtx_cnt) {}
 
-    void draw() const {
+    void draw(GLenum mode = GL_LINE_LOOP) const {
         m_obj->bind();
-        execute();
+        execute(mode);
     }
 
-    virtual void execute() const { glDrawArrays(GL_LINE_LOOP, 0, m_vtx_cnt); }
+    virtual void execute(GLenum mode = GL_LINE_LOOP) const {
+        glDrawArrays(mode, 0, m_vtx_cnt);
+    }
 
 private:
     std::shared_ptr<const Object<N>> m_obj;
@@ -164,8 +166,8 @@ public:
                   GLsizei idx_cnt = 0, const GLuint* idx = nullptr)
         : Geometry<N>(size, vtx_cnt, vtx, idx_cnt, idx), m_idx_cnt(idx_cnt) {}
 
-    virtual void execute() const {
-        glDrawElements(GL_LINES, m_idx_cnt, GL_UNSIGNED_INT, 0);
+    virtual void execute(GLenum mode = GL_LINES) const {
+        glDrawElements(mode, m_idx_cnt, GL_UNSIGNED_INT, 0);
     }
 
 protected:
@@ -197,8 +199,8 @@ std::unique_ptr<const Geometry3D> Octahedron(GLfloat s = 1.0f) {
     return shape;
 }
 
-std::unique_ptr<const GeometryIndex3D> Cube(GLfloat s = 1.0f,
-                                            GLfloat d = 0.8f) {
+std::unique_ptr<const GeometryIndex3D> WireCube(GLfloat s = 1.0f,
+                                                GLfloat d = 0.8f) {
     const Vec3 cube_vtx[] = {
         {{-s, -s, -s}, {0.0f, 0.0f, 0.0f}},  // 0
         {{-s, -s, s}, {0.0f, 0.0f, d}},      // 1
@@ -228,6 +230,32 @@ std::unique_ptr<const GeometryIndex3D> Cube(GLfloat s = 1.0f,
     return shape;
 }
 
+std::unique_ptr<const GeometryIndex3D> SolidCube(GLfloat s = 1.0f,
+                                                 GLfloat d = 0.8f) {
+    const Vec3 cube_vtx[] = {
+        {{-s, -s, -s}, {0.0f, 0.0f, 0.0f}},  // 0
+        {{-s, -s, s}, {0.0f, 0.0f, d}},      // 1
+        {{-s, s, s}, {0.0f, d, 0.0f}},       // 2
+        {{-s, s, -s}, {0.0f, d, d}},         // 3
+        {{s, s, -s}, {d, 0.0f, 0.0f}},       // 4
+        {{s, -s, -s}, {d, 0.0f, d}},         // 5
+        {{s, -s, s}, {d, d, 0.0f}},          // 6
+        {{s, s, s}, {d, d, d}}               // 7
+    };
+
+    const GLuint cube_idx[] = {
+        0, 1, 2, 0, 2, 3,  // left
+        0, 3, 4, 0, 4, 5,  // back
+        0, 5, 6, 0, 6, 1,  // bottom
+        7, 6, 5, 7, 5, 4,  // right
+        7, 4, 3, 7, 3, 2,  // up
+        7, 2, 1, 7, 1, 6   // front
+    };
+
+    std::unique_ptr<const GeometryIndex3D> shape(
+        new GeometryIndex3D(3, 8, cube_vtx, 36, cube_idx));
+    return shape;
+}
 // ============================ Initializer ================================
 
 inline void Initialize() {
