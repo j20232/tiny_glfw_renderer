@@ -6,14 +6,14 @@
 using namespace tiny_glfw_renderer;
 
 const std::string SHADER_DIR = "../example/shaders/";
-const std::string MVP_VERT = SHADER_DIR + "mvp.vert";
-const std::string FRAG = SHADER_DIR + "point.frag";
+const std::string MVP_VERT = SHADER_DIR + "color_mvp.vert";
+const std::string FRAG = SHADER_DIR + "color_point.frag";
 
 int main() {
     Initialize();
     Window window(640, 480, "Test");
 
-    const GLuint program(LoadProgram(MVP_VERT, FRAG));
+    const GLuint program(LoadProgram(MVP_VERT, FRAG, true));
     const GLint model_location(glGetUniformLocation(program, "model"));
     const GLint view_location(glGetUniformLocation(program, "view"));
     const GLint proj_location(glGetUniformLocation(program, "projection"));

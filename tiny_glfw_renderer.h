@@ -80,6 +80,7 @@ private:
 template <int N>
 struct Vec {
     GLfloat position[N];
+    GLfloat color[N];
 };
 
 using Vec2 = Vec<2>;
@@ -100,8 +101,11 @@ public:
         glBufferData(GL_ARRAY_BUFFER, vtx_cnt * sizeof(Vec<N>), vtx,
                      GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, 0, 0);
+        glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, sizeof(Vec<N>), 0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vec<N>),
+                              static_cast<char*>(0) + sizeof vtx->position);
+        glEnableVertexAttribArray(1);
 
         // index buffer object
         glGenBuffers(1, &m_ibo);
@@ -193,16 +197,17 @@ std::unique_ptr<const Geometry3D> Octahedron(GLfloat s = 1.0f) {
     return shape;
 }
 
-std::unique_ptr<const GeometryIndex3D> Cube(GLfloat s = 1.0f) {
+std::unique_ptr<const GeometryIndex3D> Cube(GLfloat s = 1.0f,
+                                            GLfloat d = 0.8f) {
     const Vec3 cube_vtx[] = {
-        {{-s, -s, -s}},  // 0
-        {{-s, -s, s}},   // 1
-        {{-s, s, s}},    // 2
-        {{-s, s, -s}},   // 3
-        {{s, s, -s}},    // 4
-        {{s, -s, -s}},   // 5
-        {{s, -s, s}},    // 6
-        {{s, s, s}}      // 7
+        {{-s, -s, -s}, {0.0f, 0.0f, 0.0f}},  // 0
+        {{-s, -s, s}, {0.0f, 0.0f, d}},      // 1
+        {{-s, s, s}, {0.0f, d, 0.0f}},       // 2
+        {{-s, s, -s}, {0.0f, d, d}},         // 3
+        {{s, s, -s}, {d, 0.0f, 0.0f}},       // 4
+        {{s, -s, -s}, {d, 0.0f, d}},         // 5
+        {{s, -s, s}, {d, d, 0.0f}},          // 6
+        {{s, s, s}, {d, d, d}}               // 7
     };
     const GLuint cube_idx[] = {
         1, 0,  //
@@ -274,7 +279,8 @@ inline GLboolean PrintProgramInfoLog(GLuint program) {
     return static_cast<GLboolean>(status);
 }
 
-inline GLuint CreateProgram(const char* vsrc, const char* fsrc) {
+inline GLuint CreateProgram(const char* vsrc, const char* fsrc,
+                            bool use_color = false) {
     const GLuint program(glCreateProgram());
     if (vsrc == nullptr || fsrc == nullptr) {
         std::cout << "Incompatible shader source." << std::endl;
@@ -299,6 +305,9 @@ inline GLuint CreateProgram(const char* vsrc, const char* fsrc) {
 
     // Link shaders
     glBindAttribLocation(program, 0, "position");
+    if (use_color) {
+        glBindAttribLocation(program, 1, "color");
+    }
     glBindFragDataLocation(program, 0, "fragment");
     glLinkProgram(program);
     if (PrintProgramInfoLog(program)) return program;
@@ -335,11 +344,12 @@ inline GLboolean ReadShaderSource(const std::string name,
 }
 
 inline GLuint LoadProgram(const std::string vert_shader_file,
-                          const std::string frag_shader_file) {
+                          const std::string frag_shader_file,
+                          bool use_color = false) {
     std::vector<GLchar> vsrc, fsrc;
-    const bool vstat(ReadShaderSource(vert_shader_file, vsrc));
-    const bool fstat(ReadShaderSource(frag_shader_file, fsrc));
-    return vstat && fstat ? CreateProgram(vsrc.data(), fsrc.data()) : 0;
+    const bool vst(ReadShaderSource(vert_shader_file, vsrc));
+    const bool fst(ReadShaderSource(frag_shader_file, fsrc));
+    return vst && fst ? CreateProgram(vsrc.data(), fsrc.data(), use_color) : 0;
 }
 
 // ============================== GUI ===================================
