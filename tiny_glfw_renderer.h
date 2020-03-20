@@ -62,6 +62,8 @@ public:
                              GLfloat top, GLfloat z_near, GLfloat z_far);
     static Matrix Frustum(GLfloat left, GLfloat right, GLfloat bottom,
                           GLfloat top, GLfloat z_near, GLfloat z_far);
+    static Matrix Perspective(GLfloat fovy, GLfloat aspect, GLfloat z_near,
+                              GLfloat z_far);
 
 private:
     GLfloat m_matrix[16];
@@ -460,6 +462,24 @@ Matrix Matrix::Frustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,
         t.m_matrix[5] = 2.0f + z_near / dy;
         t.m_matrix[8] = (right + left) / dx;
         t.m_matrix[9] = (top + bottom) / dy;
+        t.m_matrix[10] = -(z_far + z_near) / dz;
+        t.m_matrix[11] = -1.0f;
+        t.m_matrix[14] = -2.0f * z_far * z_near / dz;
+        t.m_matrix[15] = 0.0f;
+    }
+
+    return t;
+}
+
+Matrix Matrix::Perspective(GLfloat fovy, GLfloat aspect, GLfloat z_near,
+                           GLfloat z_far) {
+    Matrix t(Identity());
+    const GLfloat dz(z_far - z_near);
+
+    if (dz != 0.0f) {
+        float f = 1.0f / std::tan(fovy * 0.5f);
+        t.m_matrix[0] = f / aspect;
+        t.m_matrix[5] = f;
         t.m_matrix[10] = -(z_far + z_near) / dz;
         t.m_matrix[11] = -1.0f;
         t.m_matrix[14] = -2.0f * z_far * z_near / dz;

@@ -70,3 +70,14 @@ target_link_libraries(
     glew
 )
 
+# box perspective
+add_executable(
+    box_perspective.out
+    example/box_perspective.cpp
+)
+
+target_link_libraries(
+    box_perspective.out
+    glfw
+    glew
+)
