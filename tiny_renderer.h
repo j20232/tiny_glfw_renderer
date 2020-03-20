@@ -20,11 +20,17 @@ public:
     virtual ~Window();
     int ShouldClose() const;
     void SwapBuffers();
-    GLfloat GetAspect();
+
+    GLfloat GetWidth() const;
+    GLfloat GetHeight() const;
+    GLfloat GetAspect() const;
+    GLfloat GetScale() const;
 
 private:
     GLFWwindow* const m_window;
-    GLfloat m_aspect;
+    GLfloat m_width;
+    GLfloat m_height;
+    GLfloat m_scale;
     static void Resize(GLFWwindow* const window, int width, int height);
 };
 
@@ -181,7 +187,10 @@ inline GLuint LoadProgram(const std::string vert_shader_file,
 // ============================== GUI ===================================
 Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
                GLFWwindow* share)
-    : m_window(glfwCreateWindow(width, height, title, monitor, share)) {
+    : m_window(glfwCreateWindow(width, height, title, monitor, share)),
+      m_scale(100.0f) {
+    m_width = width;
+    m_height = height;
     if (m_window == NULL) {
         std::cerr << "Can't create GLFW window." << std::endl;
         exit(1);
@@ -195,7 +204,7 @@ Window::Window(int width, int height, const char* title, GLFWmonitor* monitor,
     glfwSwapInterval(1);
     glfwSetWindowUserPointer(m_window, this);
     glfwSetWindowSizeCallback(m_window, Resize);
-    Resize(m_window, width, height);
+    Resize(m_window, m_width, m_height);
 }
 
 Window::~Window() { glfwDestroyWindow(m_window); }
@@ -212,12 +221,15 @@ void Window::Resize(GLFWwindow* const window, int width, int height) {
     Window* const instance(
         static_cast<Window*>(glfwGetWindowUserPointer(window)));
     if (instance != nullptr) {
-        instance->m_aspect =
-            static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
+        instance->m_width = width;
+        instance->m_height = height;
     }
 }
 
-GLfloat Window::GetAspect() { return m_aspect; }
+GLfloat Window::GetWidth() const { return m_width; }
+GLfloat Window::GetHeight() const { return m_height; }
+GLfloat Window::GetAspect() const { return m_width / m_height; }
+GLfloat Window::GetScale() const { return m_scale; }
 
 // ============================ Object2D ==============================
 
