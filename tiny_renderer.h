@@ -2,7 +2,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -38,6 +40,29 @@ private:
     static void Wheel(GLFWwindow* const window, double x, double y);
     static void KeyBoard(GLFWwindow* const window, int key, int scancode,
                          int action, int mods);
+};
+
+// ============================= Matrix =================================
+class Matrix {
+public:
+    Matrix() {}
+    Matrix(const GLfloat* a);
+    const GLfloat* Data() const;
+    Matrix operator*(const Matrix& m) const;
+
+    static Matrix Identity();
+    static Matrix Translate(GLfloat x, GLfloat y, GLfloat z);
+    static Matrix Scale(GLfloat x, GLfloat y, GLfloat z);
+    static Matrix Rotate(GLfloat theta, GLfloat x, GLfloat y, GLfloat z);
+
+private:
+    GLfloat m_matrix[16];
+    /*
+     | 0  4  8 12 |
+     | 1  5  9 13 |
+     | 2  6 10 14 |
+     | 3  7 11 15 |
+    */
 };
 
 // ============================ Geometry ================================
@@ -288,6 +313,69 @@ GLfloat Window::GetHeight() const { return m_height; }
 GLfloat Window::GetAspect() const { return m_width / m_height; }
 GLfloat Window::GetScale() const { return m_scale; }
 const GLfloat* Window::GetLocation() const { return m_location; }
+
+// ============================= Matrix =================================
+Matrix::Matrix(const GLfloat* a) { std::copy(a, a + 16, m_matrix); }
+
+const GLfloat* Matrix::Data() const { return m_matrix; }
+
+Matrix Matrix::operator*(const Matrix& m) const {
+    Matrix t;
+    for (int i = 0; i < 16; i++) {
+        const int j(i & 3), k(i & ~3);
+        t.m_matrix[i] = m_matrix[0 + j] * m.m_matrix[k + 0] +
+                        m_matrix[4 + j] * m.m_matrix[k + 1] +
+                        m_matrix[8 + j] * m.m_matrix[k + 2] +
+                        m_matrix[12 + j] * m.m_matrix[k + 3];
+    }
+    return t;
+}
+
+Matrix Matrix::Identity() {
+    Matrix t;
+    std::fill(t.m_matrix, t.m_matrix + 16, 0.0f);
+    t.m_matrix[0] = t.m_matrix[5] = t.m_matrix[10] = t.m_matrix[15] = 1.0f;
+    return t;
+}
+
+Matrix Matrix::Translate(GLfloat x, GLfloat y, GLfloat z) {
+    Matrix t(Identity());
+    t.m_matrix[12] = x;
+    t.m_matrix[13] = y;
+    t.m_matrix[14] = z;
+    return t;
+}
+
+Matrix Matrix::Scale(GLfloat x, GLfloat y, GLfloat z) {
+    Matrix t(Identity());
+    t.m_matrix[0] = x;
+    t.m_matrix[5] = y;
+    t.m_matrix[10] = z;
+    return t;
+}
+
+Matrix Matrix::Rotate(GLfloat theta, GLfloat x, GLfloat y, GLfloat z) {
+    Matrix t(Identity());
+    const GLfloat d(std::sqrt(x * x + y * y + z * z));
+    if (d <= 0.0f) return t;
+
+    // Rodrigues' rotation formula
+    const GLfloat l(x / d), m(y / d), n(z / d);
+
+    t.m_matrix[0] = l * l * (1 - std::cos(theta)) + std::cos(theta);
+    t.m_matrix[1] = l * m * (1 - std::cos(theta)) + n * std::sin(theta);
+    t.m_matrix[2] = l * n * (1 - std::cos(theta)) - m * std::sin(theta);
+
+    t.m_matrix[4] = l * m * (1 - std::cos(theta)) - n * std::sin(theta);
+    t.m_matrix[5] = m * m * (1 - std::cos(theta)) + std::cos(theta);
+    t.m_matrix[6] = m * n * (1 - std::cos(theta)) + l * std::sin(theta);
+
+    t.m_matrix[8] = l * n * (1 - std::cos(theta)) + m * std::sin(theta);
+    t.m_matrix[9] = m * n * (1 - std::cos(theta)) - l * std::sin(theta);
+    t.m_matrix[10] = n * n * (1 - std::cos(theta)) + std::cos(theta);
+
+    return t;
+}
 
 // ============================ Object2D ==============================
 

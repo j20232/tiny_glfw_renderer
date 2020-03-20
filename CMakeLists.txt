@@ -45,3 +45,17 @@ target_link_libraries(
     glfw
     glew
 )
+
+
+# box mvp
+add_executable(
+    box_mvp.out
+    example/box_mvp.cpp
+)
+
+target_link_libraries(
+    box_mvp.out
+    glfw
+    glew
+)
+
