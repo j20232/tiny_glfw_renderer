@@ -77,7 +77,7 @@ private:
 template <int N>
 struct Vec {
     GLfloat position[N];
-    GLfloat color[N];
+    GLfloat normal[N];
 };
 
 using Vec2 = Vec<2>;
@@ -228,58 +228,68 @@ std::unique_ptr<const GeometryIndex3D> WireCube(GLfloat s = 1.0f,
     return shape;
 }
 
-std::unique_ptr<const GeometryIndex3D> SolidCube(GLfloat s = 1.0f,
-                                                 GLfloat d = 0.8f,
-                                                 GLfloat t = 0.1f) {
+std::unique_ptr<const GeometryIndex3D> SolidCube(GLfloat s = 1.0f) {
     const Vec3 cube_vtx[] = {
         // left
-        {{-s, -s, -s}, {t, d, t}},
-        {{-s, -s, s}, {t, d, t}},
-        {{-s, s, s}, {t, d, t}},
-        {{-s, s, -s}, {t, d, t}},
+        {{-s, -s, -s}, {-1.0f, 0.0f, 0.0f}},
+        {{-s, -s, s}, {-1.0f, 0.0f, 0.0f}},
+        {{-s, s, s}, {-1.0f, 0.0f, 0.0f}},
+        {{-s, -s, -s}, {-1.0f, 0.0f, 0.0f}},
+        {{-s, s, s}, {-1.0f, 0.0f, 0.0f}},
+        {{-s, s, -s}, {-1.0f, 0.0f, 0.0f}},
 
         // back
-        {{s, -s, -s}, {d, t, d}},
-        {{-s, -s, -s}, {d, t, d}},
-        {{-s, s, -s}, {d, t, d}},
-        {{s, s, -s}, {d, t, d}},
+        {{s, -s, -s}, {0.0f, 0.0f, -1.0f}},
+        {{-s, -s, -s}, {0.0f, 0.0f, -1.0f}},
+        {{-s, s, -s}, {0.0f, 0.0f, -1.0f}},
+        {{s, -s, -s}, {0.0f, 0.0f, -1.0f}},
+        {{-s, s, -s}, {0.0f, 0.0f, -1.0f}},
+        {{s, s, -s}, {0.0f, 0.0f, -1.0f}},
 
         // bottom
-        {{-s, -s, -s}, {t, d, d}},
-        {{s, -s, -s}, {t, d, d}},
-        {{s, -s, s}, {t, d, d}},
-        {{-s, -s, s}, {t, d, d}},
+        {{-s, -s, -s}, {0.0f, -1.0f, 0.0f}},
+        {{s, -s, -s}, {0.0f, -1.0f, 0.0f}},
+        {{s, -s, s}, {0.0f, -1.0f, 0.0f}},
+        {{-s, -s, -s}, {0.0f, -1.0f, 0.0f}},
+        {{s, -s, s}, {0.0f, -1.0f, 0.0f}},
+        {{-s, -s, s}, {0.0f, -1.0f, 0.0f}},
 
         // right
-        {{s, -s, s}, {t, t, d}},
-        {{s, -s, -s}, {t, t, d}},
-        {{s, s, -s}, {t, t, d}},
-        {{s, s, s}, {t, t, d}},
+        {{s, -s, s}, {1.0f, 0.0f, 0.0f}},
+        {{s, -s, -s}, {1.0f, 0.0f, 0.0f}},
+        {{s, s, -s}, {1.0f, 0.0f, 0.0f}},
+        {{s, -s, s}, {1.0f, 0.0f, 0.0f}},
+        {{s, s, -s}, {1.0f, 0.0f, 0.0f}},
+        {{s, s, s}, {1.0f, 0.0f, 0.0f}},
 
         // top
-        {{-s, s, -s}, {d, t, t}},
-        {{-s, s, s}, {d, t, t}},
-        {{s, s, s}, {d, t, t}},
-        {{s, s, -s}, {d, t, t}},
+        {{-s, s, -s}, {0.0f, 1.0f, 0.0f}},
+        {{-s, s, s}, {0.0f, 1.0f, 0.0f}},
+        {{s, s, s}, {0.0f, 1.0f, 0.0f}},
+        {{-s, s, -s}, {0.0f, 1.0f, 0.0f}},
+        {{s, s, s}, {0.0f, 1.0f, 0.0f}},
+        {{s, s, -s}, {0.0f, 1.0f, 0.0f}},
 
         // front
-        {{-s, -s, s}, {d, d, t}},
-        {{s, -s, s}, {d, d, t}},
-        {{s, s, s}, {d, d, t}},
-        {{-s, s, s}, {d, d, t}},
+        {{-s, -s, s}, {0.0f, 0.0f, 1.0f}},
+        {{s, -s, s}, {0.0f, 0.0f, 1.0f}},
+        {{s, s, s}, {0.0f, 0.0f, 1.0f}},
+        {{-s, -s, s}, {0.0f, 0.0f, 1.0f}},
+        {{s, s, s}, {0.0f, 0.0f, 1.0f}},
+        {{-s, s, s}, {0.0f, 0.0f, 1.0f}},
     };
 
     const GLuint cube_idx[] = {
-        0,  1,  2,  0,  2,  3,   // left
-        4,  5,  6,  4,  6,  7,   // back
-        8,  9,  10, 8,  10, 11,  // bottom
-        12, 13, 14, 12, 14, 15,  // right
-        16, 17, 18, 16, 18, 19,  // top
-        20, 21, 22, 20, 22, 23   // front
+        0,  1,  2,  3,  4,  5,   // left
+        6,  7,  8,  9,  10, 11,  // back
+        12, 13, 14, 15, 16, 17,  // bottom
+        18, 19, 20, 21, 22, 23,  // right
+        24, 25, 26, 27, 28, 29,  // top
+        30, 31, 32, 33, 34, 35   // front
     };
 
     std::unique_ptr<const GeometryIndex3D> shape(
-        new GeometryIndex3D(3, 24, cube_vtx, 36, cube_idx));
+        new GeometryIndex3D(3, 36, cube_vtx, 36, cube_idx));
     return shape;
 }
 // ============================ Initializer ================================
@@ -334,7 +344,7 @@ inline GLboolean PrintProgramInfoLog(GLuint program) {
 }
 
 inline GLuint CreateProgram(const char* vsrc, const char* fsrc,
-                            bool use_color = false) {
+                            bool use_normal = false) {
     const GLuint program(glCreateProgram());
     if (vsrc == nullptr || fsrc == nullptr) {
         std::cout << "Incompatible shader source." << std::endl;
@@ -359,8 +369,8 @@ inline GLuint CreateProgram(const char* vsrc, const char* fsrc,
 
     // Link shaders
     glBindAttribLocation(program, 0, "position");
-    if (use_color) {
-        glBindAttribLocation(program, 1, "color");
+    if (use_normal) {
+        glBindAttribLocation(program, 1, "normal");
     }
     glBindFragDataLocation(program, 0, "fragment");
     glLinkProgram(program);
@@ -399,11 +409,11 @@ inline GLboolean ReadShaderSource(const std::string name,
 
 inline GLuint LoadProgram(const std::string vert_shader_file,
                           const std::string frag_shader_file,
-                          bool use_color = false) {
+                          bool use_normal = false) {
     std::vector<GLchar> vsrc, fsrc;
     const bool vst(ReadShaderSource(vert_shader_file, vsrc));
     const bool fst(ReadShaderSource(frag_shader_file, fsrc));
-    return vst && fst ? CreateProgram(vsrc.data(), fsrc.data(), use_color) : 0;
+    return vst && fst ? CreateProgram(vsrc.data(), fsrc.data(), use_normal) : 0;
 }
 
 // ============================== GUI ===================================

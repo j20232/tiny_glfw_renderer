@@ -7,7 +7,7 @@ using namespace tiny_glfw_renderer;
 
 const std::string SHADER_DIR = "../example/shaders/";
 const std::string MVP_VERT = SHADER_DIR + "color_mvp.vert";
-const std::string FRAG = SHADER_DIR + "color_point.frag";
+const std::string FRAG = SHADER_DIR + "normal_point.frag";
 
 int main() {
     Initialize();
