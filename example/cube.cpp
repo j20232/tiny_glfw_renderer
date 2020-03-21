@@ -20,7 +20,8 @@ int main() {
     const GLint normal_location(glGetUniformLocation(program, "normal_mat"));
     GLfloat normal_mat[9];
 
-    auto shape = SolidCube(1.0f);
+    auto cube = SolidCube(1.0f);
+    auto sphere = SolidSphere(8);
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
@@ -66,7 +67,7 @@ int main() {
         const Matrix projection(Matrix::Perspective(fovy, aspect, 1.0f, 10.0f));
         glUniformMatrix4fv(proj_location, 1, GL_FALSE, projection.Data());
 
-        shape->draw(GL_TRIANGLES);
+        sphere->draw(GL_TRIANGLES);
 
         // model2
         const Matrix model2(translation * Matrix::Translate(0.0f, 0.0f, 3.0f));
@@ -77,7 +78,7 @@ int main() {
         modelview2.GetNormalMatrix(normal_mat);
         glUniformMatrix3fv(normal_location, 1, GL_FALSE, normal_mat);
 
-        shape->draw(GL_TRIANGLES);
+        cube->draw(GL_TRIANGLES);
 
         window.SwapBuffers();
     }

@@ -293,6 +293,51 @@ std::unique_ptr<const GeometryIndex3D> SolidCube(GLfloat s = 1.0f) {
         new GeometryIndex3D(3, 36, cube_vtx, 36, cube_idx));
     return shape;
 }
+
+std::unique_ptr<const GeometryIndex3D> SolidSphere(int samples = 8) {
+    const float PI = 3.141592653;
+    const int slices(2 * samples), stacks(samples);
+
+    std::vector<Vec3> sphere_vtx;
+    for (int j = 0; j <= stacks; j++) {
+        const float t(static_cast<float>(j) / static_cast<float>(stacks));
+        const float y(std::cos(PI * t)), r(std::sin(PI * t));
+        for (int i = 0; i <= slices; i++) {
+            const float s(static_cast<float>(i) / static_cast<float>(samples));
+            const float z(r * std::cos(2 * PI * s)),
+                x(r * std::sin(2 * PI * s));
+            const Vec3 v = {{x, y, z}, {x, y, z}};
+            sphere_vtx.emplace_back(v);
+        }
+    }
+
+    std::vector<GLuint> sphere_idx;
+    for (int j = 0; j < stacks; j++) {
+        const int k((slices + 1) * j);
+        for (int i = 0; i < slices; i++) {
+            const GLuint k0(k + i);
+            const GLuint k1(k0 + 1);
+            const GLuint k2(k1 + slices);
+            const GLuint k3(k2 + 1);
+
+            // left bottom
+            sphere_idx.emplace_back(k0);
+            sphere_idx.emplace_back(k2);
+            sphere_idx.emplace_back(k3);
+
+            // right up
+            sphere_idx.emplace_back(k0);
+            sphere_idx.emplace_back(k3);
+            sphere_idx.emplace_back(k1);
+        }
+    }
+
+    std::unique_ptr<const GeometryIndex3D> shape(new GeometryIndex3D(
+        3, static_cast<GLsizei>(sphere_vtx.size()), sphere_vtx.data(),
+        static_cast<GLsizei>(sphere_idx.size()), sphere_idx.data()));
+    return shape;
+}
+
 // ============================ Initializer ================================
 
 inline void Initialize() {
