@@ -14,14 +14,29 @@ int main() {
     Window window(640, 480, "Test");
 
     const GLuint program(LoadProgram(MVP_VERT, FRAG, true));
+
+    // mvp
     const GLint model_location(glGetUniformLocation(program, "model"));
     const GLint view_location(glGetUniformLocation(program, "view"));
     const GLint proj_location(glGetUniformLocation(program, "projection"));
-    const GLint normal_location(glGetUniformLocation(program, "normal_mat"));
-    GLfloat normal_mat[9];
 
+    // light
+    const GLint normal_location(glGetUniformLocation(program, "normal_mat"));
+    const GLint Lpos_location(glGetUniformLocation(program, "Lpos"));
+    const GLint Lamb_location(glGetUniformLocation(program, "Lamb"));
+    const GLint Ldiff_location(glGetUniformLocation(program, "Ldiff"));
+    const GLint Lspec_location(glGetUniformLocation(program, "Lspec"));
+
+    // geometry
     auto cube = SolidCube(1.0f);
     auto sphere = SolidSphere(8);
+
+    // light
+    GLfloat normal_mat[9];
+    static constexpr GLfloat Lpos[] = {0.0f, 0.0f, 5.0f, 1.0f};
+    static constexpr GLfloat Lamb[] = {0.2f, 0.1f, 0.1f};
+    static constexpr GLfloat Ldiff[] = {1.0f, 0.5f, 0.5f};
+    static constexpr GLfloat Lspec[] = {1.0f, 0.5f, 0.5f};
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
@@ -40,6 +55,12 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(program);
+
+        // light
+        glUniform4fv(Lpos_location, 1, Lpos);
+        glUniform3fv(Lamb_location, 1, Lamb);
+        glUniform3fv(Ldiff_location, 1, Ldiff);
+        glUniform3fv(Lspec_location, 1, Lspec);
 
         // translation
         const GLfloat *const position(window.GetLocation());
