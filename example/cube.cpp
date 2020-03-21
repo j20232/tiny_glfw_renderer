@@ -17,6 +17,8 @@ int main() {
     const GLint model_location(glGetUniformLocation(program, "model"));
     const GLint view_location(glGetUniformLocation(program, "view"));
     const GLint proj_location(glGetUniformLocation(program, "projection"));
+    const GLint normal_location(glGetUniformLocation(program, "normal_mat"));
+    GLfloat normal_mat[9];
 
     auto shape = SolidCube(1.0f);
 
@@ -53,6 +55,11 @@ int main() {
                                          0.0f, 1.0f, 0.0f));
         glUniformMatrix4fv(view_location, 1, GL_FALSE, view.Data());
 
+        // normal
+        const Matrix modelview(view * model);
+        modelview.GetNormalMatrix(normal_mat);
+        glUniformMatrix3fv(normal_location, 1, GL_FALSE, normal_mat);
+
         // projection matrix
         const GLfloat fovy(window.GetScale() * 0.01f);
         const GLfloat aspect(window.GetAspect());
@@ -61,8 +68,15 @@ int main() {
 
         shape->draw(GL_TRIANGLES);
 
+        // model2
         const Matrix model2(translation * Matrix::Translate(0.0f, 0.0f, 3.0f));
         glUniformMatrix4fv(model_location, 1, GL_FALSE, model2.Data());
+
+        // normals
+        const Matrix modelview2(view * model2);
+        modelview2.GetNormalMatrix(normal_mat);
+        glUniformMatrix3fv(normal_location, 1, GL_FALSE, normal_mat);
+
         shape->draw(GL_TRIANGLES);
 
         window.SwapBuffers();
