@@ -27,18 +27,33 @@ int main() {
     const GLint Ldiff_location(glGetUniformLocation(program, "Ldiff"));
     const GLint Lspec_location(glGetUniformLocation(program, "Lspec"));
 
+    // material
+    const GLint material_location(glGetUniformBlockIndex(program, "material"));
+    glUniformBlockBinding(program, material_location, 0);
+    static constexpr Material color[] = {{{{0.6f, 0.6f, 0.2f}},  // Kamb
+                                          {{0.6f, 0.6f, 0.2f}},  // Kdiff
+                                          {{0.3f, 0.3f, 0.3f}},  // Kspec
+                                          30.0f},                // Kshi
+                                         {{{0.1f, 0.1f, 0.5f}},
+                                          {{0.1f, 0.1f, 0.5f}},
+                                          {{0.4f, 0.4f, 0.4f}},
+                                          60.0f}};
+    const Uniform<Material> material[] = {&color[0], &color[1]};
+
     // geometry
     auto cube = SolidCube(1.0f);
-    auto sphere = SolidSphere(8);
+    auto sphere = SolidSphere(16);
 
     // light
     GLfloat normal_mat[9];
-    static constexpr GLfloat Lpos[] = {0.0f, 0.0f, 5.0f, 1.0f};
-    static constexpr GLfloat Lamb[] = {0.2f, 0.1f, 0.1f};
-    static constexpr GLfloat Ldiff[] = {1.0f, 0.5f, 0.5f};
-    static constexpr GLfloat Lspec[] = {1.0f, 0.5f, 0.5f};
+    static constexpr int Lcount(2);
+    static constexpr Vector Lpos[] = {{{0.0f, 0.0f, 5.0f, 1.0f}},
+                                      {{8.0f, 0.0f, 0.0f, 1.0f}}};
+    static constexpr GLfloat Lamb[] = {0.2f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f};
+    static constexpr GLfloat Ldiff[] = {1.0f, 0.5f, 0.5f, 0.9f, 0.9f, 0.9f};
+    static constexpr GLfloat Lspec[] = {1.0f, 0.5f, 0.5f, 0.9f, 0.9f, 0.9f};
 
-    glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+    glClearColor(0.1f, 0.1f, 0.4f, 0.0f);
 
     // Back Culling
     glFrontFace(GL_CCW);
@@ -55,12 +70,6 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(program);
-
-        // light
-        glUniform4fv(Lpos_location, 1, Lpos);
-        glUniform3fv(Lamb_location, 1, Lamb);
-        glUniform3fv(Ldiff_location, 1, Ldiff);
-        glUniform3fv(Lspec_location, 1, Lspec);
 
         // translation
         const GLfloat *const position(window.GetLocation());
@@ -88,6 +97,15 @@ int main() {
         const Matrix projection(Matrix::Perspective(fovy, aspect, 1.0f, 10.0f));
         glUniformMatrix4fv(proj_location, 1, GL_FALSE, projection.Data());
 
+        // light
+        for (int i = 0; i < Lcount; i++) {
+            glUniform4fv(Lpos_location + i, 1, (view * Lpos[i]).data());
+        }
+        glUniform3fv(Lamb_location, Lcount, Lamb);
+        glUniform3fv(Ldiff_location, Lcount, Ldiff);
+        glUniform3fv(Lspec_location, Lcount, Lspec);
+
+        material[0].select();
         sphere->draw(GL_TRIANGLES);
 
         // model2
@@ -99,6 +117,7 @@ int main() {
         modelview2.GetNormalMatrix(normal_mat);
         glUniformMatrix3fv(normal_location, 1, GL_FALSE, normal_mat);
 
+        material[1].select();
         cube->draw(GL_TRIANGLES);
 
         window.SwapBuffers();

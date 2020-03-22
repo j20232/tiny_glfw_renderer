@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -73,22 +74,35 @@ private:
     */
 };
 
+// ============================= Vector =================================
+
+typedef std::array<GLfloat, 4> Vector;
+
+Vector operator*(const Matrix& m, const Vector& v) {
+    Vector t;
+    for (int i = 0; i < 4; i++) {
+        t[i] = m.Data()[0 + i] * v[0] + m.Data()[4 + i] * v[1] +
+               m.Data()[8 + i] * v[2] + m.Data()[12 + i] * v[3];
+    }
+    return t;
+}
+
 // ============================ Geometry ================================
 
 template <int N>
-struct Vec {
+struct Vertex {
     GLfloat position[N];
     GLfloat normal[N];
 };
 
-using Vec2 = Vec<2>;
-using Vec3 = Vec<3>;
+using Vertex2D = Vertex<2>;
+using Vertex3D = Vertex<3>;
 
 template <int N>
 class Object {
 public:
-    Object(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx, GLsizei idx_cnt = 0,
-           const GLuint* idx = nullptr) {
+    Object(GLint size, GLsizei vtx_cnt, const Vertex<N>* vtx,
+           GLsizei idx_cnt = 0, const GLuint* idx = nullptr) {
         // vertex array object
         glGenVertexArrays(1, &m_vao);
         glBindVertexArray(m_vao);
@@ -96,12 +110,13 @@ public:
         // vertex buffer object
         glGenBuffers(1, &m_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, vtx_cnt * sizeof(Vec<N>), vtx,
+        glBufferData(GL_ARRAY_BUFFER, vtx_cnt * sizeof(Vertex<N>), vtx,
                      GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, sizeof(Vec<N>), 0);
+        glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, sizeof(Vertex<N>),
+                              0);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vec<N>),
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex<N>),
                               static_cast<char*>(0) + sizeof vtx->position);
         glEnableVertexAttribArray(1);
 
@@ -135,7 +150,7 @@ using Object3D = Object<3>;
 template <int N>
 class Geometry {
 public:
-    Geometry(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx,
+    Geometry(GLint size, GLsizei vtx_cnt, const Vertex<N>* vtx,
              GLsizei idx_cnt = 0, const GLuint* idx = nullptr)
         : m_obj(new Object<N>(size, vtx_cnt, vtx, idx_cnt, idx)),
           m_vtx_cnt(vtx_cnt) {}
@@ -160,7 +175,7 @@ using Geometry3D = Geometry<3>;
 template <int N>
 class GeometryIndex : public Geometry<N> {
 public:
-    GeometryIndex(GLint size, GLsizei vtx_cnt, const Vec<N>* vtx,
+    GeometryIndex(GLint size, GLsizei vtx_cnt, const Vertex<N>* vtx,
                   GLsizei idx_cnt = 0, const GLuint* idx = nullptr)
         : Geometry<N>(size, vtx_cnt, vtx, idx_cnt, idx), m_idx_cnt(idx_cnt) {}
 
@@ -175,11 +190,48 @@ protected:
 using GeometryIndex2D = GeometryIndex<2>;
 using GeometryIndex3D = GeometryIndex<3>;
 
+// ============================== Material =================================
+
+struct Material {
+    alignas(16) std::array<GLfloat, 3> ambient;
+    alignas(16) std::array<GLfloat, 3> diffuse;
+    alignas(16) std::array<GLfloat, 3> specular;
+    alignas(4) GLfloat shininess;
+};
+
+template <typename T>
+class Uniform {
+public:
+    Uniform(const T* data = NULL) : m_buffer(new UniformBuffer(data)) {}
+    virtual ~Uniform() {}
+    void set(const T* data) const {
+        glBindBuffer(GL_UNIFORM_BUFFER, m_buffer->ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), data);
+    }
+    void select(GLuint binding_point = 0) const {
+        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_buffer->ubo);
+    }
+
+private:
+    struct UniformBuffer {
+        GLuint ubo;  // uniform buffer object
+        UniformBuffer(const T* data) {
+            glGenBuffers(1, &ubo);
+            glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+            glBufferData(GL_UNIFORM_BUFFER, sizeof(T), data, GL_STATIC_DRAW);
+        }
+
+        ~UniformBuffer() { glDeleteBuffers(1, &ubo); }
+    };
+
+    const std::shared_ptr<const UniformBuffer> m_buffer;
+};
+
 // ============================= Primitive =================================
 
 std::unique_ptr<const Geometry2D> Rectangle(GLfloat x, GLfloat y, GLfloat w,
                                             GLfloat h) {
-    const Vec2 rectangle_vtx[] = {
+    const Vertex2D rectangle_vtx[] = {
         {{x, y}}, {{x + w, y}}, {{x + w, y + h}}, {{x, y + h}}};
     std::unique_ptr<const Geometry2D> shape(
         new Geometry2D(2, 4, rectangle_vtx));
@@ -187,7 +239,7 @@ std::unique_ptr<const Geometry2D> Rectangle(GLfloat x, GLfloat y, GLfloat w,
 }
 
 std::unique_ptr<const Geometry3D> Octahedron(GLfloat s = 1.0f) {
-    const Vec3 octahedron_vtx[] = {
+    const Vertex3D octahedron_vtx[] = {
         {{0.0f, s, 0.0f}},  {{-s, 0.0f, 0.0f}}, {{0.0f, -s, 0.0f}},
         {{s, 0.0f, 0.0f}},  {{0.0f, s, 0.0f}},  {{0.0f, 0.0f, s}},
         {{0.0f, -s, 0.0f}}, {{0.0f, 0.0f, -s}}, {{-s, 0.0f, 0.0f}},
@@ -200,7 +252,7 @@ std::unique_ptr<const Geometry3D> Octahedron(GLfloat s = 1.0f) {
 std::unique_ptr<const GeometryIndex3D> WireCube(GLfloat s = 1.0f,
                                                 GLfloat d = 0.8f,
                                                 GLfloat t = 0.1f) {
-    const Vec3 cube_vtx[] = {
+    const Vertex3D cube_vtx[] = {
         {{-s, -s, -s}, {t, t, t}},  // 0
         {{-s, -s, s}, {t, t, d}},   // 1
         {{-s, s, s}, {t, d, t}},    // 2
@@ -230,7 +282,7 @@ std::unique_ptr<const GeometryIndex3D> WireCube(GLfloat s = 1.0f,
 }
 
 std::unique_ptr<const GeometryIndex3D> SolidCube(GLfloat s = 1.0f) {
-    const Vec3 cube_vtx[] = {
+    const Vertex3D cube_vtx[] = {
         // left
         {{-s, -s, -s}, {-1.0f, 0.0f, 0.0f}},
         {{-s, -s, s}, {-1.0f, 0.0f, 0.0f}},
@@ -298,7 +350,7 @@ std::unique_ptr<const GeometryIndex3D> SolidSphere(int samples = 8) {
     const float PI = 3.141592653;
     const int slices(2 * samples), stacks(samples);
 
-    std::vector<Vec3> sphere_vtx;
+    std::vector<Vertex3D> sphere_vtx;
     for (int j = 0; j <= stacks; j++) {
         const float t(static_cast<float>(j) / static_cast<float>(stacks));
         const float y(std::cos(PI * t)), r(std::sin(PI * t));
@@ -306,7 +358,7 @@ std::unique_ptr<const GeometryIndex3D> SolidSphere(int samples = 8) {
             const float s(static_cast<float>(i) / static_cast<float>(samples));
             const float z(r * std::cos(2 * PI * s)),
                 x(r * std::sin(2 * PI * s));
-            const Vec3 v = {{x, y, z}, {x, y, z}};
+            const Vertex3D v = {{x, y, z}, {x, y, z}};
             sphere_vtx.emplace_back(v);
         }
     }
