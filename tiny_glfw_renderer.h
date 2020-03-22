@@ -202,23 +202,40 @@ struct Material {
 template <typename T>
 class Uniform {
 public:
-    Uniform(const T* data = NULL) : m_buffer(new UniformBuffer(data)) {}
+    Uniform(const T* data = NULL, unsigned int count = 1)
+        : m_buffer(new UniformBuffer(data, count)) {}
     virtual ~Uniform() {}
-    void set(const T* data) const {
+    void set(const T* data, unsigned int i = 0, unsigned int count = 1) const {
         glBindBuffer(GL_UNIFORM_BUFFER, m_buffer->ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), data);
+        for (unsigned int i = 0; i < count; i++) {
+            glBufferSubData(GL_UNIFORM_BUFFER, i * m_buffer->block_size,
+                            sizeof(T), data + i);
+        }
     }
-    void select(GLuint binding_point = 0) const {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_buffer->ubo);
+    void select(unsigned int i = 0, GLuint binding_point = 0) const {
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding_point, m_buffer->ubo,
+                          i * m_buffer->block_size, sizeof(T));
     }
 
 private:
     struct UniformBuffer {
         GLuint ubo;  // uniform buffer object
-        UniformBuffer(const T* data) {
+        GLsizeiptr block_size;
+        UniformBuffer(const T* data, unsigned int count) {
+            // Get uniform block size
+            GLint alignment;
+            glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &alignment);
+            block_size = (((sizeof(T) - 1) / alignment) + 1) * alignment;
+
+            // Create ubo
             glGenBuffers(1, &ubo);
             glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-            glBufferData(GL_UNIFORM_BUFFER, sizeof(T), data, GL_STATIC_DRAW);
+            glBufferData(GL_UNIFORM_BUFFER, count * block_size, NULL,
+                         GL_STATIC_DRAW);
+            for (unsigned int i = 0; i < count; i++) {
+                glBufferSubData(GL_UNIFORM_BUFFER, i * block_size, sizeof(T),
+                                data + i);
+            }
         }
 
         ~UniformBuffer() { glDeleteBuffers(1, &ubo); }

@@ -38,11 +38,11 @@ int main() {
                                           {{0.1f, 0.1f, 0.5f}},
                                           {{0.4f, 0.4f, 0.4f}},
                                           60.0f}};
-    const Uniform<Material> material[] = {&color[0], &color[1]};
+    const Uniform<Material> material(color, 2);
 
     // geometry
     auto cube = SolidCube(1.0f);
-    auto sphere = SolidSphere(16);
+    auto sphere = SolidSphere(24);
 
     // light
     GLfloat normal_mat[9];
@@ -105,7 +105,7 @@ int main() {
         glUniform3fv(Ldiff_location, Lcount, Ldiff);
         glUniform3fv(Lspec_location, Lcount, Lspec);
 
-        material[0].select();
+        material.select(0);
         sphere->draw(GL_TRIANGLES);
 
         // model2
@@ -117,7 +117,7 @@ int main() {
         modelview2.GetNormalMatrix(normal_mat);
         glUniformMatrix3fv(normal_location, 1, GL_FALSE, normal_mat);
 
-        material[1].select();
+        material.select(1);
         cube->draw(GL_TRIANGLES);
 
         window.SwapBuffers();
